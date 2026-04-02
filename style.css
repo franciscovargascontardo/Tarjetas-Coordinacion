@@ -231,7 +231,7 @@ textarea {
 }
 
 .tarjeta-header {
-    padding: 6px 8px 4px;
+    padding: 6px 8px;
     color: white;
 }
 
@@ -259,17 +259,16 @@ textarea {
 
 .tarjeta-body {
     background: white;
-    padding: 6px 8px;
+    padding: 6px 8px 8px;
 }
 
 .tarjeta-direccion {
     font-size: 0.55rem;
-    color: #888;
-    font-weight: 700;
-    margin-bottom: 4px;
-    border-bottom: 1px solid #f0e8ff;
-    padding-bottom: 4px;
-    display: none;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+    margin-top: 2px;
+    opacity: 0.9;
+    line-height: 1.3;
 }
 
 .tarjeta-descripcion {

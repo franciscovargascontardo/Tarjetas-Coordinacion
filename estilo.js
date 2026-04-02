@@ -11,8 +11,17 @@ const colores = [
 
 let colorSeleccionado = colores[0].bg;
 let recintoSeleccionado = '';
+let colorRecinto = '';
+let esOtraOrganizacion = false;
 
-// Renderizar botones de color
+// Función para habilitar/deshabilitar botones de color
+function habilitarColores(habilitado) {
+  document.querySelectorAll('.color-btn').forEach(btn => {
+    btn.style.opacity = habilitado ? '1' : '0.5';
+    btn.style.cursor = habilitado ? 'pointer' : 'not-allowed';
+    btn.style.pointerEvents = habilitado ? 'auto' : 'none';
+  });
+}
 const colorRow = document.getElementById('color-row');
 colores.forEach((c, i) => {
   const btn = document.createElement('button');
@@ -27,9 +36,22 @@ colores.forEach((c, i) => {
   colorRow.appendChild(btn);
 });
 
+// Deshabilitar botones de color inicialmente
+habilitarColores(false);
+
 function agregarEvento() {
   const fecha = document.getElementById('inp-fecha').value.trim();
-  const recinto = recintoSeleccionado;
+  let recinto = recintoSeleccionado;
+
+  // Si es "Otra organización", obtener el valor del input personalizado
+  if (esOtraOrganizacion) {
+    recinto = document.getElementById('inp-otra-organizacion').value.trim();
+    if (!recinto) {
+      alert('Por favor especifica el nombre de la organización.');
+      return;
+    }
+  }
+
   const direccion = document.getElementById('inp-direccion').value.trim();
   const descripcion = document.getElementById('inp-descripcion').value.trim();
 
@@ -47,19 +69,21 @@ function agregarEvento() {
   const tarjeta = document.createElement('div');
   tarjeta.className = 'tarjeta';
 
+  // Priorizar el color del recinto si está seleccionado
+  const colorFinal = colorRecinto ? colorRecinto : colorSeleccionado;
+
   tarjeta.innerHTML = `
       <button class="btn-eliminar" onclick="this.closest('.tarjeta').remove()" title="Eliminar">✕</button>
-      <div class="tarjeta-header" style="background: ${colorSeleccionado}">
+      <div class="tarjeta-header" style="background: ${colorFinal}">
         <div class="tarjeta-fecha">${fecha || '—'}</div>
         <div class="tarjeta-recinto">
-          <span class="tarjeta-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+          <span class="tarjeta-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
   <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
 </svg></span>${recinto || '—'}
-          
         </div>
+        ${direccion ? `<div class="tarjeta-direccion">${direccion}</div>` : ''}
       </div>
       <div class="tarjeta-body">
-        ${direccion ? `<div class="tarjeta-direccion">${direccion}</div>` : ''}
         <div class="tarjeta-descripcion">${descripcion || ''}</div>
       </div>
     `;
@@ -69,9 +93,19 @@ function agregarEvento() {
   // Limpiar formulario
   document.getElementById('inp-fecha').value = '';
   recintoSeleccionado = '';
+  colorRecinto = '';
+  esOtraOrganizacion = false;
   document.querySelector('.dropdown-toggle').textContent = 'Selecciona una organización';
+  document.getElementById('inp-otra-organizacion').value = '';
+  document.getElementById('grupo-otra-organizacion').style.display = 'none';
   document.getElementById('inp-direccion').value = '';
   document.getElementById('inp-descripcion').value = '';
+  // Restaurar el primer botón de color como seleccionado y deshabilitar
+  document.querySelectorAll('.color-btn').forEach((btn, i) => {
+    if (i === 0) btn.classList.add('selected');
+  });
+  habilitarColores(false);
+  colorSeleccionado = colores[0].bg;
   document.getElementById('inp-fecha').focus();
 }
 
@@ -86,7 +120,31 @@ function agregarEvento() {
 document.querySelectorAll('.dropdown-item').forEach(item => {
   item.addEventListener('click', e => {
     e.preventDefault();
-    recintoSeleccionado = item.getAttribute('data-value') || item.textContent;
+    const valor = item.getAttribute('data-value') || item.textContent;
+
+    recintoSeleccionado = valor;
+
+    // Detectar si es "Otra organización"
+    if (valor === 'Otra organización') {
+      esOtraOrganizacion = true;
+      colorRecinto = ''; // Sin color automático
+      // Mostrar el input y habilitar colores
+      document.getElementById('grupo-otra-organizacion').style.display = 'block';
+      document.getElementById('inp-otra-organizacion').focus();
+      habilitarColores(true);
+      // Desseleccionar todos los botones para que el usuario elija
+      document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+    } else {
+      esOtraOrganizacion = false;
+      colorRecinto = item.getAttribute('data-color') || '#2e4057';
+      // Ocultar el input y deshabilitar colores
+      document.getElementById('grupo-otra-organizacion').style.display = 'none';
+      document.getElementById('inp-otra-organizacion').value = '';
+      habilitarColores(false);
+      // Desseleccionar todos los botones de color
+      document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+    }
+
     // Actualizar el texto del botón del dropdown
     document.querySelector('.dropdown-toggle').textContent = recintoSeleccionado;
   });
