@@ -1,0 +1,354 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background: #fdf6ee;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* ── FORMULARIO ── */
+.form-container {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 2px solid #e8d5c0;
+}
+
+.form-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    color: #5a3e8a;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+input,
+textarea,
+select {
+    border: 2px solid #e0d0f0;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s;
+    background: #fafafa;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: #7c4db8;
+    background: white;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+/* ── DROPDOWN ── */
+.dropdown .btn {
+    width: 100%;
+    border: 2px solid #e0d0f0 !important;
+    border-radius: 10px;
+    background: #fafafa !important;
+    color: #333 !important;
+    padding: 8px 12px !important;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem !important;
+    font-weight: 400 !important;
+    text-align: left;
+    box-shadow: none !important;
+    transition: border-color 0.2s;
+}
+
+.dropdown .btn:hover,
+.dropdown .btn:focus {
+    border-color: #7c4db8 !important;
+    background: white !important;
+}
+
+.dropdown-menu {
+    border: 2px solid #e0d0f0;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    display: none !important;
+    list-style: none !important;
+    padding: 8px 0 !important;
+}
+
+.dropdown-menu.show {
+    display: block !important;
+}
+
+.dropdown-item {
+    color: #333;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    color: #5a3e8a;
+
+}
+
+.color-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.color-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.color-btn:hover {
+    transform: scale(1.2);
+}
+
+.color-btn.selected {
+    border-color: #333;
+    transform: scale(1.15);
+}
+
+.btn-agregar {
+    width: 100%;
+    margin-top: 14px;
+    background: linear-gradient(135deg, #7c4db8, #5a3e8a);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.03em;
+}
+
+.btn-agregar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 77, 184, 0.4);
+}
+
+.btn-agregar:active {
+    transform: translateY(0);
+}
+
+/* ── CARTELERA ── */
+.cartelera-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.cartelera-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    color: #e8834a;
+    letter-spacing: 0.1em;
+}
+
+.cartelera-header h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.2rem;
+    color: #7bd4e8;
+    line-height: 1;
+}
+
+.cartelera-header h3 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: #5a3e8a;
+}
+
+.cartelera-header h4 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    color: #e8834a;
+    font-style: italic;
+}
+
+
+
+/* ── TARJETA ── */
+.tarjeta {
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    animation: aparecer 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    position: relative;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: scale(0.7) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.tarjeta-header {
+    padding: 6px 8px 4px;
+    color: white;
+}
+
+.tarjeta-fecha {
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.tarjeta-recinto {
+    font-style: italic;
+    font-size: 0.6rem;
+    opacity: 0.9;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-top: 1px;
+}
+
+.tarjeta-icon {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-right: 3px;
+
+}
+
+.tarjeta-body {
+    background: white;
+    padding: 6px 8px;
+}
+
+.tarjeta-direccion {
+    font-size: 0.55rem;
+    color: #888;
+    font-weight: 700;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #f0e8ff;
+    padding-bottom: 4px;
+    display: none;
+}
+
+.tarjeta-descripcion {
+    font-size: 0.6rem;
+    color: #444;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.btn-eliminar {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.tarjeta:hover .btn-eliminar {
+    opacity: 1;
+}
+
+/* ── PLACEHOLDER vacío ── */
+.placeholder-vacio {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.placeholder-vacio .icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* ── GRILLA DE TARJETAS ── */
+.template-container {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: 30px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.template-bg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.grilla {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 900px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    padding: 20px;
+    max-height: fit-content;
+}
+
+/* Limitar a máximo 18 tarjetas (6 columnas × 3 filas) */
+.grilla .tarjeta:nth-child(n+19) {
+    display: none;
+}

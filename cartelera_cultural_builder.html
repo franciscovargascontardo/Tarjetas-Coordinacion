@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsOok+NLAPJF1vKdWfHmm" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- FORMULARIO -->
+  <div class="form-container">
+    <div class="form-title">+ Agregar evento a la cartelera</div>
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Día (ej: Mie 02)</label>
+        <input type="text" id="inp-fecha" placeholder="Lun 06" maxlength="10">
+      </div>
+
+      <div class="form-group">
+        <label>Organización</label>
+        <div class="dropdown">
+          <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Selecciona una organización
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" data-value="Bioescuela Aula Viva">Bioescuela Aula Viva</a></li>
+            <li><a class="dropdown-item" href="#" data-value="Centro Cultural">Centro Cultural</a></li>
+            <li><a class="dropdown-item" href="#" data-value="Espacio Comunitario">Espacio Comunitario</a></li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="#" data-value="Otra organización">Otra organización</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="form-group full">
+        <label>Dirección</label>
+        <input type="text" id="inp-direccion" placeholder="Camino del río, parcela N°62...">
+      </div>
+
+      <div class="form-group full">
+        <label>Actividad a Realizar</label>
+        <textarea id="inp-descripcion"
+          placeholder="Escuela de artes y autocuidado para niñas y mujeres rurales."></textarea>
+      </div>
+
+      <div class="form-group full">
+        <label>Color de tarjeta</label>
+        <div class="color-row" id="color-row">
+          <!-- generado por JS -->
+        </div>
+      </div>
+
+    </div>
+    <button class="btn-agregar" onclick="agregarEvento()">Agregar a la cartelera</button>
+  </div>
+
+  <!-- CARTELERA -->
+  <div class="cartelera-header">
+    <h1>Cartelera</h1>
+    <h2>Cultural</h2>
+    <h3>Comunitaria</h3>
+    <h4>Isla de Maipo</h4>
+    <img class="icono"
+      src="https://islitatv.cl/wp-content/uploads/2020/09/cropped-cropped-cropped-cropped-logo-tras-300-1.png"
+      alt="Logo" width="100">
+  </div>
+
+  <!-- TEMPLATE CON TARJETAS -->
+  <div class="template-container">
+    <img src="img/template.png" alt="Template" class="template-bg">
+    <div id="grilla" class="grilla"></div>
+  </div>
+
+  <script src="estilo.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+    integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"
+    integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>
