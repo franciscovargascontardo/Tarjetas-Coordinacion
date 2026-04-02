@@ -1,3 +1,15 @@
+// ── MASONRY ──
+function aplicarMasonry() {
+  const grilla = document.getElementById('grilla');
+  const tarjetas = grilla.querySelectorAll('.tarjeta');
+  tarjetas.forEach(tarjeta => {
+    tarjeta.style.gridRowEnd = '';
+    const alto = tarjeta.getBoundingClientRect().height;
+    const filas = Math.ceil((alto + 10) / 8);
+    tarjeta.style.gridRowEnd = `span ${filas}`;
+  });
+}
+
 const colores = [
   { bg: '#4a3b8a', label: 'Morado' },
   { bg: '#2e7d6e', label: 'Verde' },
@@ -13,6 +25,14 @@ let colorSeleccionado = colores[0].bg;
 let recintoSeleccionado = '';
 let colorRecinto = '';
 let esOtraOrganizacion = false;
+let fechaFormateada = '';
+
+// Abreviaturas de días de la semana en español
+const diasAbreviados = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+
+// Array para almacenar los eventos
+let eventos = [];
+let fechaCompleta = null;
 
 // Función para habilitar/deshabilitar botones de color
 function habilitarColores(habilitado) {
@@ -21,6 +41,52 @@ function habilitarColores(habilitado) {
     btn.style.cursor = habilitado ? 'pointer' : 'not-allowed';
     btn.style.pointerEvents = habilitado ? 'auto' : 'none';
   });
+}
+
+// Función para renderizar todas las tarjetas ordenadas
+function renderizarTarjetas() {
+  const grilla = document.getElementById('grilla');
+  grilla.innerHTML = '';
+
+  // Ordenar eventos por fecha
+  eventos.sort((a, b) => a.fechaCompleta - b.fechaCompleta);
+
+  // Crear las tarjetas en orden
+  eventos.forEach(evento => {
+    const tarjeta = document.createElement('div');
+    tarjeta.className = 'tarjeta';
+
+    const colorFinal = evento.color;
+
+    tarjeta.innerHTML = `
+      <button class="btn-eliminar" onclick="eliminarEvento(${evento.id})" title="Eliminar">✕</button>
+      <div class="tarjeta-header" style="background: ${colorFinal}">
+        <div class="tarjeta-fecha">${evento.fechaFormato}</div>
+        <div class="tarjeta-recinto">
+          <span class="tarjeta-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+  <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
+</svg></span>${evento.recinto}
+        </div>
+        ${evento.direccion ? `<div class="tarjeta-direccion">${evento.direccion}</div>` : ''}
+      </div>
+      <div class="tarjeta-body">
+        <div class="tarjeta-descripcion">${evento.descripcion}</div>
+      </div>
+    `;
+
+    grilla.appendChild(tarjeta);
+  });
+
+  // Aplicar masonry después de que el DOM renderice
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => aplicarMasonry());
+  });
+}
+
+// Función para eliminar un evento
+function eliminarEvento(id) {
+  eventos = eventos.filter(evento => evento.id !== id);
+  renderizarTarjetas();
 }
 const colorRow = document.getElementById('color-row');
 colores.forEach((c, i) => {
@@ -40,7 +106,7 @@ colores.forEach((c, i) => {
 habilitarColores(false);
 
 function agregarEvento() {
-  const fecha = document.getElementById('inp-fecha').value.trim();
+  const fecha = fechaFormateada;
   let recinto = recintoSeleccionado;
 
   // Si es "Otra organización", obtener el valor del input personalizado
@@ -60,38 +126,25 @@ function agregarEvento() {
     return;
   }
 
-  // Quitar placeholder si existe
-  const grilla = document.getElementById('grilla');
-  const placeholder = grilla.querySelector('.placeholder-vacio');
-  if (placeholder) placeholder.remove();
+  // Agregar evento al array
+  const evento = {
+    id: Date.now(), // ID único basado en timestamp
+    fechaCompleta: fechaCompleta, // Fecha completa para ordenamiento
+    fechaFormato: fecha,
+    recinto: recinto || '—',
+    direccion: direccion || '',
+    descripcion: descripcion || '',
+    color: colorRecinto ? colorRecinto : colorSeleccionado
+  };
 
-  // Crear tarjeta
-  const tarjeta = document.createElement('div');
-  tarjeta.className = 'tarjeta';
+  eventos.push(evento);
 
-  // Priorizar el color del recinto si está seleccionado
-  const colorFinal = colorRecinto ? colorRecinto : colorSeleccionado;
-
-  tarjeta.innerHTML = `
-      <button class="btn-eliminar" onclick="this.closest('.tarjeta').remove()" title="Eliminar">✕</button>
-      <div class="tarjeta-header" style="background: ${colorFinal}">
-        <div class="tarjeta-fecha">${fecha || '—'}</div>
-        <div class="tarjeta-recinto">
-          <span class="tarjeta-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
-  <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
-</svg></span>${recinto || '—'}
-        </div>
-        ${direccion ? `<div class="tarjeta-direccion">${direccion}</div>` : ''}
-      </div>
-      <div class="tarjeta-body">
-        <div class="tarjeta-descripcion">${descripcion || ''}</div>
-      </div>
-    `;
-
-  grilla.appendChild(tarjeta);
+  // Renderizar todas las tarjetas ordenadas
+  renderizarTarjetas();
 
   // Limpiar formulario
   document.getElementById('inp-fecha').value = '';
+  fechaFormateada = '';
   recintoSeleccionado = '';
   colorRecinto = '';
   esOtraOrganizacion = false;
@@ -109,8 +162,22 @@ function agregarEvento() {
   document.getElementById('inp-fecha').focus();
 }
 
+// Event listener para procesar la fecha seleccionada
+document.getElementById('inp-fecha').addEventListener('change', (e) => {
+  if (e.target.value) {
+    const fecha = new Date(e.target.value + 'T00:00:00');
+    fechaCompleta = fecha; // Guardar fecha completa para ordenamiento
+    const diaSemana = diasAbreviados[fecha.getDay()];
+    const numeroDia = String(fecha.getDate()).padStart(2, '0');
+    fechaFormateada = `${diaSemana} ${numeroDia}`;
+  } else {
+    fechaFormateada = '';
+    fechaCompleta = null;
+  }
+});
+
 // Agregar con Enter en los inputs (excepto textarea)
-['inp-fecha', 'inp-direccion'].forEach(id => {
+['inp-direccion'].forEach(id => {
   document.getElementById(id).addEventListener('keydown', e => {
     if (e.key === 'Enter') agregarEvento();
   });
