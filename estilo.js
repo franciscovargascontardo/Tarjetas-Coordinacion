@@ -5,7 +5,7 @@ function aplicarMasonry() {
   tarjetas.forEach(tarjeta => {
     tarjeta.style.gridRowEnd = '';
     const alto = tarjeta.getBoundingClientRect().height;
-    const filas = Math.ceil((alto + 10) / 8);
+    const filas = Math.ceil(alto / 8);
     tarjeta.style.gridRowEnd = `span ${filas}`;
   });
 }
