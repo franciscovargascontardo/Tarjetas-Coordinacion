@@ -367,3 +367,31 @@ textarea {
 .grilla .tarjeta:nth-child(n+19) {
     display: none;
 }
+
+/* ── BOTÓN DESCARGAR ── */
+.btn-descargar-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.btn-descargar {
+    background: linear-gradient(135deg, #7c4db8, #5a3e8a);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.03em;
+}
+
+.btn-descargar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 77, 184, 0.4);
+}
+
+.btn-descargar:active {
+    transform: translateY(0);
+}
