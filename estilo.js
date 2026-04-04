@@ -271,33 +271,153 @@ async function descargarCartelera() {
   const btn = document.querySelector('.btn-descargar');
   btn.textContent = 'Generando imagen...';
   btn.disabled = true;
-
   const btnContainer = document.querySelector('.btn-descargar-container');
   btnContainer.style.display = 'none';
 
   try {
-    const elemento = document.querySelector('.template-container');
-
-    const canvas = await html2canvas(elemento, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: null,
-      logging: false,
-      onclone: (doc) => {
-        // En el clon, quitar overflow:hidden de la grilla para que se capturen las tarjetas
-        const grilla = doc.querySelector('.grilla');
-        if (grilla) {
-          grilla.style.overflow = 'visible';
-          grilla.style.height = 'auto';
-        }
-        const container = doc.querySelector('.template-container');
-        if (container) {
-          container.style.overflow = 'visible';
-        }
-      }
+    // ── 1. Cargar imagen de fondo ──
+    const templateBg = document.querySelector('.template-bg');
+    const bgImg = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = templateBg.src;
     });
 
+    const W = bgImg.naturalWidth;
+    const H = bgImg.naturalHeight;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Dibujar fondo a resolución original
+    ctx.drawImage(bgImg, 0, 0, W, H);
+
+    // ── 2. Calcular escala entre el DOM y la imagen real ──
+    const bgRect = templateBg.getBoundingClientRect();
+    const escalaX = W / bgRect.width;
+    const escalaY = H / bgRect.height;
+
+    // ── 3. Helper wrap texto ──
+    function wrapText(ctx, texto, x, y, maxW, lineH) {
+      const palabras = texto.split(' ');
+      let linea = '';
+      let cy = y;
+      for (const p of palabras) {
+        const prueba = linea + p + ' ';
+        if (ctx.measureText(prueba).width > maxW && linea) {
+          ctx.fillText(linea.trim(), x, cy);
+          cy += lineH;
+          linea = p + ' ';
+        } else linea = prueba;
+      }
+      if (linea.trim()) { ctx.fillText(linea.trim(), x, cy); cy += lineH; }
+      return cy;
+    }
+
+    // ── 4. Dibujar cada tarjeta ──
+    const tarjetas = document.querySelectorAll('.tarjeta');
+
+    for (const tarjeta of tarjetas) {
+      const domRect = tarjeta.getBoundingClientRect();
+
+      // Convertir coordenadas DOM → píxeles de la imagen real
+      const x = (domRect.left - bgRect.left) * escalaX;
+      const y = (domRect.top  - bgRect.top)  * escalaY;
+      const w = domRect.width  * escalaX;
+      const h = domRect.height * escalaY;
+      const r = 18 * escalaX;
+      const pad = 14 * escalaX;
+
+      const headerEl     = tarjeta.querySelector('.tarjeta-header');
+      const fechaEl      = tarjeta.querySelector('.tarjeta-fecha');
+      const recintoEl    = tarjeta.querySelector('.tarjeta-recinto');
+      const direccionEl  = tarjeta.querySelector('.tarjeta-direccion');
+      const descripcionEl = tarjeta.querySelector('.tarjeta-descripcion');
+
+      const colorHeader = headerEl?.style.background || '#555';
+      const headerDomH  = headerEl?.getBoundingClientRect().height || domRect.height * 0.5;
+      const headerH     = headerDomH * escalaY;
+
+      const getSize = (el) => el ? parseFloat(getComputedStyle(el).fontSize) * escalaY : 12 * escalaY;
+      const fechaSize   = getSize(fechaEl);
+      const recintoSize = getSize(recintoEl);
+      const dirSize     = getSize(direccionEl);
+      const descSize    = getSize(descripcionEl);
+
+      // Sombra + fondo blanco con border-radius
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = 16 * escalaX;
+      ctx.shadowOffsetY = 5 * escalaY;
+      ctx.beginPath();
+      ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+      ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+      ctx.lineTo(x+w,y+h-r);
+      ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+      ctx.lineTo(x+r,y+h);
+      ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+      ctx.lineTo(x,y+r);
+      ctx.quadraticCurveTo(x,y,x+r,y);
+      ctx.closePath();
+      ctx.fillStyle = 'white';
+      ctx.fill();
+      ctx.restore();
+
+      // Header coloreado (esquinas superiores)
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+      ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+      ctx.lineTo(x+w,y+headerH);
+      ctx.lineTo(x,y+headerH);
+      ctx.lineTo(x,y+r);
+      ctx.quadraticCurveTo(x,y,x+r,y);
+      ctx.closePath();
+      ctx.fillStyle = colorHeader;
+      ctx.fill();
+      ctx.restore();
+
+      // Fecha
+      let ty = y + pad + fechaSize;
+      if (fechaEl) {
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${fechaSize}px "Source Sans 3", Arial, sans-serif`;
+        ctx.fillText(fechaEl.textContent.trim(), x + pad, ty);
+        ty += fechaSize * 0.5;
+      }
+
+      // Recinto
+      if (recintoEl) {
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.font = `italic bold ${recintoSize}px Nunito, Arial, sans-serif`;
+        const txt = recintoEl.innerText.replace(/^\s*.\s*/, '').trim();
+        ty = wrapText(ctx, '📍 ' + txt, x + pad, ty, w - pad*2, recintoSize * 1.3);
+      }
+
+      // Dirección
+      if (direccionEl) {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = `${dirSize}px Nunito, Arial, sans-serif`;
+        wrapText(ctx, direccionEl.textContent.trim(), x + pad, ty, w - pad*2, dirSize * 1.3);
+      }
+
+      // Descripción
+      if (descripcionEl) {
+        ctx.fillStyle = '#444';
+        ctx.font = `bold ${descSize}px Nunito, Arial, sans-serif`;
+        let ly = y + headerH + pad + descSize;
+        for (const parrafo of descripcionEl.textContent.trim().split('\n')) {
+          if (parrafo.trim()) ly = wrapText(ctx, parrafo.trim(), x + pad, ly, w - pad*2, descSize * 1.45);
+          else ly += descSize * 0.5;
+        }
+      }
+    }
+
+    // ── 5. Descargar ──
     const link = document.createElement('a');
     link.href = canvas.toDataURL('image/png');
     link.download = `cartelera-${new Date().toISOString().slice(0, 10)}.png`;
@@ -305,7 +425,7 @@ async function descargarCartelera() {
 
   } catch (error) {
     console.error('Error:', error);
-    alert('Error al generar la imagen: ' + error.message);
+    alert('Error: ' + error.message);
   } finally {
     btnContainer.style.display = '';
     btn.textContent = 'Descargar Cartelera';
