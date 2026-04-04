@@ -272,7 +272,6 @@ async function descargarCartelera() {
   btn.textContent = 'Generando imagen...';
   btn.disabled = true;
 
-  // Ocultar botón para que no salga en la captura
   const btnContainer = document.querySelector('.btn-descargar-container');
   btnContainer.style.display = 'none';
 
@@ -285,6 +284,18 @@ async function descargarCartelera() {
       allowTaint: false,
       backgroundColor: null,
       logging: false,
+      onclone: (doc) => {
+        // En el clon, quitar overflow:hidden de la grilla para que se capturen las tarjetas
+        const grilla = doc.querySelector('.grilla');
+        if (grilla) {
+          grilla.style.overflow = 'visible';
+          grilla.style.height = 'auto';
+        }
+        const container = doc.querySelector('.template-container');
+        if (container) {
+          container.style.overflow = 'visible';
+        }
+      }
     });
 
     const link = document.createElement('a');
