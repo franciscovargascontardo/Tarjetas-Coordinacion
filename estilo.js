@@ -1,3 +1,52 @@
+// ══════════════════════════════════════════════════════
+// ⚙️  CONFIGURACIÓN DE LA IMAGEN DESCARGADA
+//     Modifica estos valores para ajustar el diseño
+// ══════════════════════════════════════════════════════
+const CONFIG_IMAGEN = {
+
+  // ── FECHA (ej: "Sab 04") ──
+  fecha: {
+    multiplicador: 1.0,   // 1.0 = tamaño original del DOM. Sube a 1.2 para más grande
+    bold: true,
+    color: 'white',
+    familia: '"Source Sans 3", Arial, sans-serif',
+  },
+
+  // ── RECINTO (nombre organización) ──
+  recinto: {
+    multiplicador: 1.0,
+    italic: true,
+    bold: true,
+    color: 'rgba(255,255,255,0.95)',
+    familia: 'Nunito, Arial, sans-serif',
+    mostrarIcono: true,   // true = muestra el ícono 📍 antes del nombre
+    icono: '📍',          // puedes cambiarlo a '▸', '•', '→', etc.
+  },
+
+  // ── DIRECCIÓN ──
+  direccion: {
+    multiplicador: 1.0,
+    color: 'rgba(255,255,255,0.85)',
+    familia: 'Nunito, Arial, sans-serif',
+  },
+
+  // ── DESCRIPCIÓN (cuerpo blanco) ──
+  descripcion: {
+    multiplicador: 1.0,
+    bold: true,
+    color: '#444',
+    familia: 'Nunito, Arial, sans-serif',
+  },
+
+  // ── TARJETA ──
+  tarjeta: {
+    borderRadius: 14,     // redondez de esquinas en px
+    padding: 10,          // espaciado interno en px
+    sombra: true,
+  },
+};
+// ══════════════════════════════════════════════════════
+
 // ── MASONRY ──
 function aplicarMasonry() {
   const grilla = document.getElementById('grilla');
@@ -219,92 +268,36 @@ document.querySelectorAll('.dropdown-item').forEach(item => {
 
 // Función para descargar la cartelera como imagen
 async function descargarCartelera() {
-  const templateImg = document.querySelector('.template-bg');
-  const grilla = document.querySelector('.grilla');
-  const tarjetas = grilla.querySelectorAll('.tarjeta');
+  const btn = document.querySelector('.btn-descargar');
+  btn.textContent = 'Generando imagen...';
+  btn.disabled = true;
+
+  // Ocultar botón para que no salga en la captura
+  const btnContainer = document.querySelector('.btn-descargar-container');
+  btnContainer.style.display = 'none';
 
   try {
-    // Cargar la imagen del template
-    const templateSrc = templateImg.src;
-    const templateImage = new Image();
-    templateImage.crossOrigin = 'anonymous';
+    const elemento = document.querySelector('.template-container');
 
-    templateImage.onload = async () => {
-      // Crear un canvas con las dimensiones de la imagen
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+    const canvas = await html2canvas(elemento, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: null,
+      logging: false,
+    });
 
-      canvas.width = templateImage.width;
-      canvas.height = templateImage.height;
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = `cartelera-${new Date().toISOString().slice(0, 10)}.png`;
+    link.click();
 
-      // Dibujar la imagen del template
-      ctx.drawImage(templateImage, 0, 0);
-
-      // Obtener el ratio respecto al tamaño en pantalla
-      const containerWidth = document.querySelector('.template-container').offsetWidth;
-      const scaleRatio = canvas.width / containerWidth;
-
-      // Dibujar cada tarjeta sobre el canvas
-      for (const tarjeta of tarjetas) {
-        const tarjetaCanvas = await html2canvas(tarjeta, {
-          backgroundColor: null,
-          scale: scaleRatio,
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-          imageTimeout: 0,
-          removeContainer: true,
-        });
-
-        // Calcular posición en el canvas original
-        const tarjetaRect = tarjeta.getBoundingClientRect();
-        const containerRect = document.querySelector('.template-container').getBoundingClientRect();
-
-        const x = (tarjetaRect.left - containerRect.left) * scaleRatio;
-        const y = (tarjetaRect.top - containerRect.top) * scaleRatio;
-
-        // Crear canvas con bordes redondeados para las tarjetas
-        const roundedCanvas = document.createElement('canvas');
-        const roundedCtx = roundedCanvas.getContext('2d');
-        roundedCanvas.width = tarjetaCanvas.width;
-        roundedCanvas.height = tarjetaCanvas.height;
-
-        // Dibujar la tarjeta con bordes redondeados
-        const radius = 18 * scaleRatio;
-        roundedCtx.beginPath();
-        roundedCtx.moveTo(radius, 0);
-        roundedCtx.lineTo(roundedCanvas.width - radius, 0);
-        roundedCtx.quadraticCurveTo(roundedCanvas.width, 0, roundedCanvas.width, radius);
-        roundedCtx.lineTo(roundedCanvas.width, roundedCanvas.height - radius);
-        roundedCtx.quadraticCurveTo(roundedCanvas.width, roundedCanvas.height, roundedCanvas.width - radius, roundedCanvas.height);
-        roundedCtx.lineTo(radius, roundedCanvas.height);
-        roundedCtx.quadraticCurveTo(0, roundedCanvas.height, 0, roundedCanvas.height - radius);
-        roundedCtx.lineTo(0, radius);
-        roundedCtx.quadraticCurveTo(0, 0, radius, 0);
-        roundedCtx.closePath();
-        roundedCtx.clip();
-        roundedCtx.drawImage(tarjetaCanvas, 0, 0);
-
-        // Dibujar tarjeta en el canvas principal
-        ctx.drawImage(roundedCanvas, x, y);
-      }
-
-      // Descargar
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = `cartelera-${new Date().toISOString().slice(0, 10)}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-
-    templateImage.onerror = () => {
-      alert('No se pudo cargar la imagen del template.');
-    };
-
-    templateImage.src = templateSrc;
   } catch (error) {
-    console.error('Error al descargar la cartelera:', error);
-    alert('Hubo un error al descargar la cartelera. Por favor intenta de nuevo.');
+    console.error('Error:', error);
+    alert('Error al generar la imagen: ' + error.message);
+  } finally {
+    btnContainer.style.display = '';
+    btn.textContent = 'Descargar Cartelera';
+    btn.disabled = false;
   }
 }
