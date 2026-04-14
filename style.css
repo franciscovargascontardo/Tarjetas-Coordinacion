@@ -171,6 +171,7 @@ textarea {
 }
 
 .btn-test {
+    display: none;
     width: 100%;
     margin-top: 8px;
     background: transparent;
