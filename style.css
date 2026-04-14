@@ -173,7 +173,7 @@ textarea {
 }
 
 .btn-test {
-    display: none;
+    display:;
     width: 100%;
     margin-top: 8px;
     background: transparent;
@@ -254,14 +254,14 @@ textarea {
 }
 
 .tarjeta-fecha {
-    font-family: 'Source Sans Variable Bold', sans-serif;
+    font-family: 'Source Sans 3', sans-serif;
     font-weight: 700;
     font-size: 1.5rem;
     line-height: 1;
 }
 
 .tarjeta-recinto {
-    font-family: 'Source Sans Variable Italic', sans-serif;
+    font-family: 'Source Sans 3', sans-serif;
     font-style: italic;
     font-size: 0.8rem;
     opacity: 0.9;
@@ -284,6 +284,7 @@ textarea {
 }
 
 .tarjeta-direccion {
+    font-family: 'Source Sans 3', sans-serif;
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.85);
     font-weight: 600;
@@ -295,6 +296,7 @@ textarea {
 }
 
 .tarjeta-descripcion {
+    font-family: 'Source Sans 3', sans-serif;
     font-size: 0.7rem;
     color: #444;
     font-weight: 750;
