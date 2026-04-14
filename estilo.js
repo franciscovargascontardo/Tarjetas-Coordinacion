@@ -1,7 +1,3 @@
-// ══════════════════════════════════════════════════════
-// ⚙️  CONFIGURACIÓN DE LA IMAGEN DESCARGADA
-//     Modifica estos valores para ajustar el diseño
-// ══════════════════════════════════════════════════════
 const CONFIG_IMAGEN = {
 
   // ── FECHA (ej: "Sab 04") ──
@@ -170,8 +166,8 @@ function agregarEvento() {
   const direccion = document.getElementById('inp-direccion').value.trim();
   const descripcion = document.getElementById('inp-descripcion').value.trim();
 
-  if (!fecha && !recinto && !descripcion) {
-    alert('Completa al menos el día, recinto o descripción.');
+  if (!fecha || !recinto || !descripcion) {
+    alert('Completa fecha, organización y descripción.');
     return;
   }
 
@@ -266,168 +262,124 @@ document.querySelectorAll('.dropdown-item').forEach(item => {
   });
 });
 
-// Función para descargar la cartelera como imagen
+// Función para descargar las tarjetas como se ven en pantalla
 async function descargarCartelera() {
   const btn = document.querySelector('.btn-descargar');
+
+  if (eventos.length === 0) {
+    alert('No hay tarjetas para descargar');
+    return;
+  }
+
   btn.textContent = 'Generando imagen...';
   btn.disabled = true;
-  const btnContainer = document.querySelector('.btn-descargar-container');
-  btnContainer.style.display = 'none';
 
   try {
-    // ── 1. Cargar imagen de fondo ──
-    const templateBg = document.querySelector('.template-bg');
-    const bgImg = await new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = templateBg.src;
+    await document.fonts.ready;
+
+    const templateBg  = document.querySelector('.template-bg');
+    const grillaOriginal = document.getElementById('grilla');
+
+    // Dimensiones reales del template PNG
+    const TW = templateBg.naturalWidth;
+    const TH = templateBg.naturalHeight;
+
+    // Escala DOM → PNG real
+    const bgRect    = templateBg.getBoundingClientRect();
+    const escalaX   = TW / bgRect.width;
+    const escalaY   = TH / bgRect.height;
+
+    // Posición y tamaño de la grilla en el PNG real
+    const grillaRect = grillaOriginal.getBoundingClientRect();
+    const offsetX = (grillaRect.left - bgRect.left) * escalaX;
+    const offsetY = (grillaRect.top  - bgRect.top)  * escalaY;
+    const grillaW = grillaRect.width  * escalaX;
+    const grillaH = grillaRect.height * escalaY;
+
+    // Crear un div invisible del tamaño EXACTO de la grilla (950x750)
+    // con position:fixed fuera de pantalla
+    const contenedor = document.createElement('div');
+    contenedor.style.cssText = `
+      position: fixed;
+      top: -99999px;
+      left: -99999px;
+      width: ${grillaRect.width}px;
+      height: ${grillaRect.height}px;
+      overflow: hidden;
+      background: transparent;
+    `;
+
+    // Clonar la grilla manteniendo position:absolute y transform
+    // pero reubicándola en (0,0) dentro del contenedor
+    const grillaClone = grillaOriginal.cloneNode(true);
+    grillaClone.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: none;
+      width: ${grillaRect.width}px;
+      height: ${grillaRect.height}px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-auto-rows: 8px;
+      column-gap: 10px;
+      row-gap: 10px;
+      padding: 15px;
+      align-items: start;
+      overflow: hidden;
+      background: transparent;
+    `;
+
+    // Copiar gridRowEnd del masonry y ocultar botón eliminar
+    grillaOriginal.querySelectorAll('.tarjeta').forEach((t, i) => {
+      const tc = grillaClone.querySelectorAll('.tarjeta')[i];
+      if (!tc) return;
+      tc.style.gridRowEnd = t.style.gridRowEnd;
+      const b = tc.querySelector('.btn-eliminar');
+      if (b) b.style.display = 'none';
     });
 
-    const W = bgImg.naturalWidth;
-    const H = bgImg.naturalHeight;
+    contenedor.appendChild(grillaClone);
+    document.body.appendChild(contenedor);
 
-    const canvas = document.createElement('canvas');
-    canvas.width = W;
-    canvas.height = H;
-    const ctx = canvas.getContext('2d');
+    // Esperar render + fuentes completamente cargadas
+    await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-    // Dibujar fondo a resolución original
-    ctx.drawImage(bgImg, 0, 0, W, H);
+    // Primer render en seco (dom-to-image necesita "calentarse" con fuentes externas)
+    await domtoimage.toPng(contenedor, { width: grillaRect.width, height: grillaRect.height });
+    await new Promise(r => setTimeout(r, 200));
 
-    // ── 2. Calcular escala entre el DOM y la imagen real ──
-    const bgRect = templateBg.getBoundingClientRect();
-    const escalaX = W / bgRect.width;
-    const escalaY = H / bgRect.height;
+    // Captura real
+    const dataUrl = await domtoimage.toPng(contenedor, {
+      width:  grillaRect.width,
+      height: grillaRect.height,
+      style: { background: 'transparent' },
+    });
 
-    // ── 3. Helper wrap texto ──
-    function wrapText(ctx, texto, x, y, maxW, lineH) {
-      const palabras = texto.split(' ');
-      let linea = '';
-      let cy = y;
-      for (const p of palabras) {
-        const prueba = linea + p + ' ';
-        if (ctx.measureText(prueba).width > maxW && linea) {
-          ctx.fillText(linea.trim(), x, cy);
-          cy += lineH;
-          linea = p + ' ';
-        } else linea = prueba;
-      }
-      if (linea.trim()) { ctx.fillText(linea.trim(), x, cy); cy += lineH; }
-      return cy;
-    }
+    document.body.removeChild(contenedor);
 
-    // ── 4. Dibujar cada tarjeta ──
-    const tarjetas = document.querySelectorAll('.tarjeta');
+    // Canvas final del tamaño del template PNG, fondo transparente
+    const img = new Image();
+    await new Promise(r => { img.onload = r; img.src = dataUrl; });
 
-    for (const tarjeta of tarjetas) {
-      const domRect = tarjeta.getBoundingClientRect();
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width  = TW;
+    finalCanvas.height = TH;
+    const ctx = finalCanvas.getContext('2d');
+    ctx.clearRect(0, 0, TW, TH);
+    ctx.drawImage(img, 0, 0, img.width, img.height, offsetX, offsetY, grillaW, grillaH);
 
-      // Convertir coordenadas DOM → píxeles de la imagen real
-      const x = (domRect.left - bgRect.left) * escalaX;
-      const y = (domRect.top  - bgRect.top)  * escalaY;
-      const w = domRect.width  * escalaX;
-      const h = domRect.height * escalaY;
-      const r = 18 * escalaX;
-      const pad = 14 * escalaX;
-
-      const headerEl     = tarjeta.querySelector('.tarjeta-header');
-      const fechaEl      = tarjeta.querySelector('.tarjeta-fecha');
-      const recintoEl    = tarjeta.querySelector('.tarjeta-recinto');
-      const direccionEl  = tarjeta.querySelector('.tarjeta-direccion');
-      const descripcionEl = tarjeta.querySelector('.tarjeta-descripcion');
-
-      const colorHeader = headerEl?.style.background || '#555';
-      const headerDomH  = headerEl?.getBoundingClientRect().height || domRect.height * 0.5;
-      const headerH     = headerDomH * escalaY;
-
-      const getSize = (el) => el ? parseFloat(getComputedStyle(el).fontSize) * escalaY : 12 * escalaY;
-      const fechaSize   = getSize(fechaEl);
-      const recintoSize = getSize(recintoEl);
-      const dirSize     = getSize(direccionEl);
-      const descSize    = getSize(descripcionEl);
-
-      // Sombra + fondo blanco con border-radius
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.2)';
-      ctx.shadowBlur = 16 * escalaX;
-      ctx.shadowOffsetY = 5 * escalaY;
-      ctx.beginPath();
-      ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
-      ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-      ctx.lineTo(x+w,y+h-r);
-      ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-      ctx.lineTo(x+r,y+h);
-      ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-      ctx.lineTo(x,y+r);
-      ctx.quadraticCurveTo(x,y,x+r,y);
-      ctx.closePath();
-      ctx.fillStyle = 'white';
-      ctx.fill();
-      ctx.restore();
-
-      // Header coloreado (esquinas superiores)
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
-      ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-      ctx.lineTo(x+w,y+headerH);
-      ctx.lineTo(x,y+headerH);
-      ctx.lineTo(x,y+r);
-      ctx.quadraticCurveTo(x,y,x+r,y);
-      ctx.closePath();
-      ctx.fillStyle = colorHeader;
-      ctx.fill();
-      ctx.restore();
-
-      // Fecha
-      let ty = y + pad + fechaSize;
-      if (fechaEl) {
-        ctx.fillStyle = 'white';
-        ctx.font = `bold ${fechaSize}px "Source Sans 3", Arial, sans-serif`;
-        ctx.fillText(fechaEl.textContent.trim(), x + pad, ty);
-        ty += fechaSize * 0.5;
-      }
-
-      // Recinto
-      if (recintoEl) {
-        ctx.fillStyle = 'rgba(255,255,255,0.95)';
-        ctx.font = `italic bold ${recintoSize}px Nunito, Arial, sans-serif`;
-        const txt = recintoEl.innerText.replace(/^\s*.\s*/, '').trim();
-        ty = wrapText(ctx, '📍 ' + txt, x + pad, ty, w - pad*2, recintoSize * 1.3);
-      }
-
-      // Dirección
-      if (direccionEl) {
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        ctx.font = `${dirSize}px Nunito, Arial, sans-serif`;
-        wrapText(ctx, direccionEl.textContent.trim(), x + pad, ty, w - pad*2, dirSize * 1.3);
-      }
-
-      // Descripción
-      if (descripcionEl) {
-        ctx.fillStyle = '#444';
-        ctx.font = `bold ${descSize}px Nunito, Arial, sans-serif`;
-        let ly = y + headerH + pad + descSize;
-        for (const parrafo of descripcionEl.textContent.trim().split('\n')) {
-          if (parrafo.trim()) ly = wrapText(ctx, parrafo.trim(), x + pad, ly, w - pad*2, descSize * 1.45);
-          else ly += descSize * 0.5;
-        }
-      }
-    }
-
-    // ── 5. Descargar ──
     const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `cartelera-${new Date().toISOString().slice(0, 10)}.png`;
+    link.href = finalCanvas.toDataURL('image/png');
+    link.download = `tarjetas-${new Date().toISOString().slice(0, 10)}.png`;
     link.click();
 
   } catch (error) {
-    console.error('Error:', error);
-    alert('Error: ' + error.message);
+    console.error(error);
+    alert('Error al generar imagen: ' + error.message);
   } finally {
-    btnContainer.style.display = '';
     btn.textContent = 'Descargar Cartelera';
     btn.disabled = false;
   }

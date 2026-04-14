@@ -237,14 +237,14 @@ textarea {
 }
 
 .tarjeta-fecha {
-    font-family: 'Source Sans 3', sans-serif;
+    font-family: 'Source Sans Variable Bold', sans-serif;
     font-weight: 700;
     font-size: 1.5rem;
     line-height: 1;
 }
 
 .tarjeta-recinto {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Source Sans Variable Italic', sans-serif;
     font-style: italic;
     font-size: 0.8rem;
     opacity: 0.9;
@@ -254,7 +254,7 @@ textarea {
 }
 
 .tarjeta-icon {
-    font-size: 0.8rem;
+    font-size: rem;
     opacity: 0.8;
     margin-right: 3px;
 
@@ -360,7 +360,7 @@ textarea {
     align-items: start;
     overflow: hidden;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
+    background: transparent;
 }
 
 /* Limitar a máximo 18 tarjetas (6 columnas × 3 filas) */
