@@ -50,7 +50,7 @@ function aplicarMasonry() {
   tarjetas.forEach(tarjeta => {
     tarjeta.style.gridRowEnd = '';
     const alto = tarjeta.getBoundingClientRect().height;
-    const filas = Math.ceil(alto / 8);
+    const filas = Math.ceil(alto / 5.5);
     tarjeta.style.gridRowEnd = `span ${filas}`;
   });
 }
@@ -262,7 +262,80 @@ document.querySelectorAll('.dropdown-item').forEach(item => {
   });
 });
 
-// Función para descargar las tarjetas como se ven en pantalla
+// ── TARJETAS DE PRUEBA ──
+function cargarTarjetasTest() {
+  const hoy = new Date();
+  const dia = (offset) => {
+    const d = new Date(hoy);
+    d.setDate(d.getDate() + offset);
+    return d;
+  };
+
+  const pruebas = [
+    {
+      fecha: dia(0),
+      recinto: 'Bioescuela Aula Viva',
+      color: '#ab7fbe',
+      direccion: 'Camino del río, parcela N°62',
+      descripcion: 'Taller de huerta urbana para familias. Aprende a cultivar en espacios pequeños con técnicas sustentables.',
+    },
+    {
+      fecha: dia(1),
+      recinto: 'Centro de Movimientos Artisticos',
+      color: '#a24f5f',
+      direccion: 'Camino del río, parcela N°62',
+      descripcion: 'Función de teatro comunitario.',
+    },
+    {
+      fecha: dia(1),
+      recinto: 'Museo Parroquial Isla de Maipo',
+      color: '#736051',
+      direccion: 'Santelices 453',
+      descripcion: 'Exposición fotográfica: Memorias del territorio. Entrada liberada para toda la comunidad. Sábado y domingo de 10:00 a 18:00 hrs.',
+    },
+    {
+      fecha: dia(3),
+      recinto: 'Agrupacion Nueva Juventud',
+      color: '#688b53',
+      direccion: 'Camino del río, parcela N°62',
+      descripcion: 'Taller Muralismo (+12) 10:00 a 13:00 hrs. La Islita\nEscuelita de Música (+12) 10:30 a 12:30 hrs.\nTaller Fotografía de calle (+15) 11:00 a 13:00 hrs.',
+    },
+    {
+      fecha: dia(5),
+      recinto: 'Radio Origen',
+      color: '#c6875b',
+      direccion: 'Balmaceda 3568',
+      descripcion: 'Jornada de inducción nueva programación comunitaria. 09:30 hrs.',
+    },
+    {
+      fecha: dia(7),
+      recinto: 'Corporacion Memoria Lonquen',
+      color: '#36489e',
+      direccion: 'Camino del río, parcela N°62',
+      descripcion: 'Acto de conmemoración y memoria. Con presentaciones artísticas, testimonios y cierre musical a cargo de agrupaciones locales. Entrada libre.',
+    },
+  ];
+
+  const diasAbrev = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+
+  pruebas.forEach(p => {
+    const diaSemana = diasAbrev[p.fecha.getDay()];
+    const numeroDia = String(p.fecha.getDate()).padStart(2, '0');
+    eventos.push({
+      id: Date.now() + Math.random(),
+      fechaCompleta: p.fecha,
+      fechaFormato: `${diaSemana} ${numeroDia}`,
+      recinto: p.recinto,
+      direccion: p.direccion,
+      descripcion: p.descripcion,
+      color: p.color,
+    });
+  });
+
+  renderizarTarjetas();
+}
+
+// Función para descargar solo las tarjetas con fondo transparente
 async function descargarCartelera() {
   const btn = document.querySelector('.btn-descargar');
 
@@ -277,27 +350,26 @@ async function descargarCartelera() {
   try {
     await document.fonts.ready;
 
-    const templateBg  = document.querySelector('.template-bg');
     const grillaOriginal = document.getElementById('grilla');
+    const templateBg     = document.querySelector('.template-bg');
 
-    // Dimensiones reales del template PNG
+    // ── Dimensiones reales del template (el archivo PNG original) ──
     const TW = templateBg.naturalWidth;
     const TH = templateBg.naturalHeight;
 
-    // Escala DOM → PNG real
-    const bgRect    = templateBg.getBoundingClientRect();
-    const escalaX   = TW / bgRect.width;
-    const escalaY   = TH / bgRect.height;
+    // ── Escala entre DOM y el PNG real ──
+    const bgRect     = templateBg.getBoundingClientRect();
+    const escalaX    = TW / bgRect.width;
+    const escalaY    = TH / bgRect.height;
 
-    // Posición y tamaño de la grilla en el PNG real
+    // ── Posición de la grilla relativa al fondo ──
     const grillaRect = grillaOriginal.getBoundingClientRect();
-    const offsetX = (grillaRect.left - bgRect.left) * escalaX;
-    const offsetY = (grillaRect.top  - bgRect.top)  * escalaY;
-    const grillaW = grillaRect.width  * escalaX;
-    const grillaH = grillaRect.height * escalaY;
+    const offsetX    = (grillaRect.left - bgRect.left) * escalaX;
+    const offsetY    = (grillaRect.top  - bgRect.top)  * escalaY;
+    const grillaW    = grillaRect.width  * escalaX;
+    const grillaH    = grillaRect.height * escalaY;
 
-    // Crear un div invisible del tamaño EXACTO de la grilla (950x750)
-    // con position:fixed fuera de pantalla
+    // ── Clonar grilla para captura ──
     const contenedor = document.createElement('div');
     contenedor.style.cssText = `
       position: fixed;
@@ -309,8 +381,6 @@ async function descargarCartelera() {
       background: transparent;
     `;
 
-    // Clonar la grilla manteniendo position:absolute y transform
-    // pero reubicándola en (0,0) dentro del contenedor
     const grillaClone = grillaOriginal.cloneNode(true);
     grillaClone.style.cssText = `
       position: absolute;
@@ -323,31 +393,33 @@ async function descargarCartelera() {
       grid-template-columns: repeat(5, 1fr);
       grid-auto-rows: 8px;
       column-gap: 10px;
-      row-gap: 10px;
+      row-gap: 0;
       padding: 15px;
       align-items: start;
       overflow: hidden;
       background: transparent;
     `;
 
-    // Copiar gridRowEnd del masonry y ocultar botón eliminar
-    grillaOriginal.querySelectorAll('.tarjeta').forEach((t, i) => {
-      const tc = grillaClone.querySelectorAll('.tarjeta')[i];
-      if (!tc) return;
-      tc.style.gridRowEnd = t.style.gridRowEnd;
-      const b = tc.querySelector('.btn-eliminar');
-      if (b) b.style.display = 'none';
+    // Copiar estilos exactos del masonry (gridRowEnd y marginBottom)
+    const tarjetasOriginales = grillaOriginal.querySelectorAll('.tarjeta');
+    const tarjetasClone      = grillaClone.querySelectorAll('.tarjeta');
+    tarjetasOriginales.forEach((t, i) => {
+      if (!tarjetasClone[i]) return;
+      tarjetasClone[i].style.gridRowEnd   = t.style.gridRowEnd;
+      tarjetasClone[i].style.marginBottom = t.style.marginBottom;
+      tarjetasClone[i].style.width        = t.getBoundingClientRect().width + 'px';
+      const btnEl = tarjetasClone[i].querySelector('.btn-eliminar');
+      if (btnEl) btnEl.style.display = 'none';
     });
 
     contenedor.appendChild(grillaClone);
     document.body.appendChild(contenedor);
 
-    // Esperar render + fuentes completamente cargadas
     await document.fonts.ready;
     await new Promise(r => setTimeout(r, 500));
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-    // Primer render en seco (dom-to-image necesita "calentarse" con fuentes externas)
+    // Render en seco para cargar fuentes
     await domtoimage.toPng(contenedor, { width: grillaRect.width, height: grillaRect.height });
     await new Promise(r => setTimeout(r, 200));
 

@@ -170,8 +170,22 @@ textarea {
     box-shadow: 0 6px 20px rgba(124, 77, 184, 0.4);
 }
 
-.btn-agregar:active {
-    transform: translateY(0);
+.btn-test {
+    width: 100%;
+    margin-top: 8px;
+    background: transparent;
+    color: #7c4db8;
+    border: 2px dashed #7c4db8;
+    border-radius: 12px;
+    padding: 10px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    letter-spacing: 0.03em;
+}
+.btn-test:hover {
+    background: rgba(124, 77, 184, 0.08);
 }
 
 /* ── CARTELERA ── */
@@ -355,7 +369,7 @@ textarea {
     grid-template-columns: repeat(5, 1fr);
     grid-auto-rows: 8px;
     column-gap: 10px;
-    row-gap: 10px;
+    row-gap: 0;
     padding: 15px;
     align-items: start;
     overflow: hidden;
