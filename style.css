@@ -102,12 +102,13 @@ textarea {
 }
 
 .dropdown-menu {
-    border: 2px solid #e0d0f0;
-    border-radius: 10px;
+    border: 2px solid #882ee2;
+    border-radius: 15px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
     display: none !important;
     list-style: none !important;
-    padding: 8px 0 !important;
+    padding: 10px 0 !important;
+    background: white !important;
 }
 
 .dropdown-menu.show {
@@ -116,14 +117,15 @@ textarea {
 
 .dropdown-item {
     color: #333;
-    font-size: 0.9rem;
-    padding: 8px 12px;
+    font-size: 1rem;
+    padding: 8px 30px;
+  
 }
 
 .dropdown-item:hover,
 .dropdown-item:focus {
-    color: #5a3e8a;
-
+    color: #5f10e7;
+    
 }
 
 .color-row {
